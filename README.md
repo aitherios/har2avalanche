@@ -18,7 +18,10 @@ Then convert to a action list file for Avalanche:
 List the options with the --help flag:
 
 ```sh
-$ ./har2avalanche.rb --help
+./har2avalanche.rb --help
+```
+
+```
 Usage: har2avalanche.rb [options]
 
     -f, --file FILE                  HAR file to be parsed
