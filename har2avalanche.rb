@@ -23,12 +23,14 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '0.1.2'
+$version = '0.2.0'
 
 class Optparse
 
   def self.parse(args)
     options = OpenStruct.new
+
+    options.with_headers = false
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = "Usage: #{File.basename(__FILE__)} [options]"
@@ -37,6 +39,10 @@ class Optparse
 
       opts.on("-f", "--file FILE", "HAR file to be parsed") do |file|
         options.filepath = file
+      end
+
+      opts.on("--with-headers", "Add <ADDITIONAL_HEADER> directives") do |flag|
+        options.with_headers = flag
       end
 
       opts.on("--whitelist [host1,host2...]", "Hosts to be whitelisted, block everything else") do |hosts|
@@ -67,8 +73,9 @@ end
 
 class Entry
 
-  def initialize(data)
+  def initialize(data, options)
     @entry = data
+    @options = options
   end
 
   def uri
@@ -85,11 +92,21 @@ class Entry
 
   def level
     headers = @entry['request']['headers'].select { |h| h['name'] == 'Referer' }
-    headers.empty? ? 1 : 2
+    headers.empty? or headers.first['value'] == uri.to_s ? 1 : 2
+  end
+
+  def additional_headers
+    directives = ''
+    @entry['request']['headers'].each do |header|
+      directives << " <ADDITIONAL_HEADER=\"#{header['name']}: #{header['value']}\">"
+    end
+    directives
   end
 
   def to_s
-    "#{level} #{method} #{uri}"
+    output = "#{level} #{method} #{uri}"
+    output << " #{additional_headers}" if @options.with_headers
+    output
   end
 end
 
@@ -99,7 +116,7 @@ options = Optparse.parse(ARGV)
 file = File.read(options.filepath)
 data_hash = JSON.parse(file)
 
-entries = data_hash["log"]["entries"].map { |e| Entry.new(e) }
+entries = data_hash["log"]["entries"].map { |e| Entry.new(e, options) }
 entries.each do |entry|
 
   unless options.whitelist.nil?

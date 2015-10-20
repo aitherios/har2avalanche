@@ -22,6 +22,7 @@ $ ./har2avalanche.rb --help
 Usage: har2avalanche.rb [options]
 
     -f, --file FILE                  HAR file to be parsed
+        --with-headers               Add <ADDITIONAL_HEADER> directives
         --whitelist [host1,host2...] Hosts to be whitelisted, block everything else
         --blacklist [host1,host2...] Hosts to be blacklisted, pass everything else
 
