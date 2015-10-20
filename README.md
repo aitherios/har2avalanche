@@ -12,3 +12,19 @@ Then convert to a action list file for Avalanche:
 ```sh
 ./har2avalanche.rb my-file.har > avalanche.txt
 ```
+
+## Options
+
+List the options with the --help flag:
+
+```sh
+$ ./har2avalanche.rb --help
+Usage: har2avalanche.rb [file.har]
+
+    -f, --file FILE                  HAR file to be parsed
+        --whitelist [host1,host2...] Hosts to be whitelisted, block everything else
+        --blacklist [host1,host2...] Hosts to be blacklisted, pass everything else
+
+    -h, --help                       Show this message
+    -v, --version                    Show version
+```

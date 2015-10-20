@@ -19,18 +19,69 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'json'
+require 'optparse'
+require 'ostruct'
+require 'uri'
 
-# Get parameters
-if ARGV.size == 1
-  file = ARGV[0]
-else
-  puts "Usage: #{File.basename(__FILE__)} [file.har]"
-  exit 1
+$version = '0.1.0'
+
+class Optparse
+
+  def self.parse(args)
+    options = OpenStruct.new
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: #{File.basename(__FILE__)} [file.har]"
+
+      opts.separator ""
+
+      opts.on("-f", "--file FILE", "HAR file to be parsed") do |file|
+        options.filepath = file
+      end
+
+      opts.on("--whitelist [host1,host2...]", "Hosts to be whitelisted, block everything else") do |hosts|
+        options.whitelist = hosts
+      end
+
+      opts.on("--blacklist [host1,host2...]", "Hosts to be blacklisted, pass everything else") do |hosts|
+        options.blacklist = hosts
+      end
+
+      opts.separator ""
+
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+
+      opts.on_tail("-v", "--version", "Show version") do
+        puts $version
+        exit
+      end
+    end
+
+    opt_parser.parse!(args)
+    options
+  end
 end
 
-file = File.read('www.google.com.br.har')
+ARGV << '--help' if ARGV.empty?
+options = Optparse.parse(ARGV)
+
+file = File.read(options.filepath)
 data_hash = JSON.parse(file)
 
 data_hash["log"]["entries"].each do |entry|
+
+  unless options.whitelist.nil?
+    uri = URI::parse(entry['request']['url'])
+    next unless options.whitelist.include?(uri.host)
+  end
+
+  unless options.blacklist.nil?
+    uri = URI::parse(entry['request']['url'])
+    next if options.blacklist.include?(uri.host)
+  end
+
   puts "#{entry['request']['method']} #{entry['request']['url']}"
 end
