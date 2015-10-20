@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '0.1.0'
+$version = '0.1.1'
 
 class Optparse
 
@@ -31,7 +31,7 @@ class Optparse
     options = OpenStruct.new
 
     opt_parser = OptionParser.new do |opts|
-      opts.banner = "Usage: #{File.basename(__FILE__)} [file.har]"
+      opts.banner = "Usage: #{File.basename(__FILE__)} [options]"
 
       opts.separator ""
 

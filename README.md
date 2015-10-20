@@ -19,7 +19,7 @@ List the options with the --help flag:
 
 ```sh
 $ ./har2avalanche.rb --help
-Usage: har2avalanche.rb [file.har]
+Usage: har2avalanche.rb [options]
 
     -f, --file FILE                  HAR file to be parsed
         --whitelist [host1,host2...] Hosts to be whitelisted, block everything else
