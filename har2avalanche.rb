@@ -83,5 +83,5 @@ data_hash["log"]["entries"].each do |entry|
     next if options.blacklist.include?(uri.host)
   end
 
-  puts "#{entry['request']['method']} #{entry['request']['url']}"
+  puts "1 #{entry['request']['method']} #{entry['request']['url']}"
 end
