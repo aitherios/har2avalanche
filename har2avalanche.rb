@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '0.1.1'
+$version = '0.1.2'
 
 class Optparse
 
@@ -65,23 +65,50 @@ class Optparse
   end
 end
 
+class Entry
+
+  def initialize(data)
+    @entry = data
+  end
+
+  def uri
+    @uri ||= URI::parse(@entry['request']['url'])
+  end
+
+  def host
+    uri.host
+  end
+
+  def method
+    @entry['request']['method'].upcase
+  end
+
+  def level
+    headers = @entry['request']['headers'].select { |h| h['name'] == 'Referer' }
+    headers.empty? ? 1 : 2
+  end
+
+  def to_s
+    "#{level} #{method} #{uri}"
+  end
+end
+
 ARGV << '--help' if ARGV.empty?
 options = Optparse.parse(ARGV)
 
 file = File.read(options.filepath)
 data_hash = JSON.parse(file)
 
-data_hash["log"]["entries"].each do |entry|
+entries = data_hash["log"]["entries"].map { |e| Entry.new(e) }
+entries.each do |entry|
 
   unless options.whitelist.nil?
-    uri = URI::parse(entry['request']['url'])
-    next unless options.whitelist.include?(uri.host)
+    next unless options.whitelist.include?(entry.host)
   end
 
   unless options.blacklist.nil?
-    uri = URI::parse(entry['request']['url'])
-    next if options.blacklist.include?(uri.host)
+    next if options.blacklist.include?(entry.host)
   end
 
-  puts "1 #{entry['request']['method']} #{entry['request']['url']}"
+  puts entry
 end
