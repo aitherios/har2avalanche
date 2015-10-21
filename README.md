@@ -25,9 +25,13 @@ List the options with the --help flag:
 Usage: har2avalanche.rb [options]
 
     -f, --file FILE                  HAR file to be parsed
-        --with-headers               Add <ADDITIONAL_HEADER> directives
-        --whitelist [host1,host2...] Hosts to be whitelisted, block everything else
-        --blacklist [host1,host2...] Hosts to be blacklisted, pass everything else
+        --include-hosts x,y,z...     Hosts to be whitelisted
+        --exclude-hosts x,y,z...     Hosts to be blacklisted
+    -H, --with-headers               Add <ADDITIONAL_HEADER> directives
+        --include-headers x,y,z...   Headers to be whitelisted
+                                     flags --with-headers
+        --exclude-headers x,y,z...   Headers to be blacklisted
+                                     flags --with-headers
 
     -h, --help                       Show this message
     -v, --version                    Show version
