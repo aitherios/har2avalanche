@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '1.1.1'
+$version = '1.1.2'
 
 class Optparse
 
@@ -148,7 +148,7 @@ class Entry
         next if @options.exclude_headers.include?(header['name'])
       end
 
-      directives << "<ADDITIONAL_HEADER=\"#{header['name']}: #{header['value']}\"> "
+      directives << %{<ADDITIONAL_HEADER="#{header['name']}: #{header['value'].gsub('"', "'")}"> }
     end
     directives
   end
