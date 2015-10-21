@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '1.0.0'
+$version = '1.1.0'
 
 class Optparse
 
@@ -41,12 +41,24 @@ class Optparse
         options.filepath = file
       end
 
+      opts.on("-b",
+              "--best-try",
+              "Tries the best to simulate reality",
+              "flags --with-referer --with-headers") do |flag|
+        options.with_referer = flag
+        options.with_headers = flag
+      end
+
       opts.on("--include-hosts x,y,z...", Array, "Hosts to be whitelisted") do |list|
         options.include_hosts = list
       end
 
       opts.on("--exclude-hosts x,y,z...", Array, "Hosts to be blacklisted") do |list|
         options.exclude_hosts = list
+      end
+
+      opts.on("-R", "--with-referer", "Add <REFERER> directive") do |flag|
+        options.with_referer = flag
       end
 
       opts.on("-H", "--with-headers", "Add <ADDITIONAL_HEADER> directives") do |flag|
@@ -106,12 +118,26 @@ class Entry
     @entry['request']['method'].upcase
   end
 
-  def level
-    headers = @entry['request']['headers'].select { |h| h['name'] == 'Referer' }
-    headers.empty? or headers.first['value'] == uri.to_s ? 1 : 2
+  def referer_header
+    headers = @entry['request']['headers'].select do |h|
+      h['name'] == 'Referer'
+    end
+    headers.empty? ? {} : headers.first
   end
 
-  def additional_headers
+  def level
+    referer_header.empty? or referer_header['value'] == uri.to_s ? 1 : 2
+  end
+
+  def referer_directive
+    directives = ''
+    if level == 2
+      directives << "<REFERER #{referer_header['value']}>"
+    end
+    directives
+  end
+
+  def additional_header_directives
     directives = ''
     @entry['request']['headers'].each do |header|
       unless @options.include_headers.nil?
@@ -122,14 +148,15 @@ class Entry
         next if @options.exclude_headers.include?(header['name'])
       end
 
-      directives << " <ADDITIONAL_HEADER=\"#{header['name']}: #{header['value']}\">"
+      directives << "<ADDITIONAL_HEADER=\"#{header['name']}: #{header['value']}\"> "
     end
     directives
   end
 
   def to_s
     output = "#{level} #{method} #{uri}"
-    output << " #{additional_headers}" if @options.with_headers
+    output << " #{referer_directive}" if @options.with_referer
+    output << " #{additional_header_directives}" if @options.with_headers
     output
   end
 end
