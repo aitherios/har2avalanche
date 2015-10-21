@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '0.2.0'
+$version = '1.0.0'
 
 class Optparse
 
@@ -41,16 +41,32 @@ class Optparse
         options.filepath = file
       end
 
-      opts.on("--with-headers", "Add <ADDITIONAL_HEADER> directives") do |flag|
+      opts.on("--include-hosts x,y,z...", Array, "Hosts to be whitelisted") do |list|
+        options.include_hosts = list
+      end
+
+      opts.on("--exclude-hosts x,y,z...", Array, "Hosts to be blacklisted") do |list|
+        options.exclude_hosts = list
+      end
+
+      opts.on("-H", "--with-headers", "Add <ADDITIONAL_HEADER> directives") do |flag|
         options.with_headers = flag
       end
 
-      opts.on("--whitelist [host1,host2...]", "Hosts to be whitelisted, block everything else") do |hosts|
-        options.whitelist = hosts
+      opts.on("--include-headers x,y,z...",
+              Array,
+              "Headers to be whitelisted",
+              "flags --with-headers") do |list|
+        options.with_headers = true
+        options.include_headers = list
       end
 
-      opts.on("--blacklist [host1,host2...]", "Hosts to be blacklisted, pass everything else") do |hosts|
-        options.blacklist = hosts
+      opts.on("--exclude-headers x,y,z...",
+              Array,
+              "Headers to be blacklisted",
+              "flags --with-headers") do |list|
+        options.with_headers = true
+        options.exclude_headers = list
       end
 
       opts.separator ""
@@ -98,6 +114,14 @@ class Entry
   def additional_headers
     directives = ''
     @entry['request']['headers'].each do |header|
+      unless @options.include_headers.nil?
+        next unless @options.include_headers.include?(header['name'])
+      end
+
+      unless @options.exclude_headers.nil?
+        next if @options.exclude_headers.include?(header['name'])
+      end
+
       directives << " <ADDITIONAL_HEADER=\"#{header['name']}: #{header['value']}\">"
     end
     directives
@@ -118,13 +142,12 @@ data_hash = JSON.parse(file)
 
 entries = data_hash["log"]["entries"].map { |e| Entry.new(e, options) }
 entries.each do |entry|
-
-  unless options.whitelist.nil?
-    next unless options.whitelist.include?(entry.host)
+  unless options.include_hosts.nil?
+    next unless options.include_hosts.include?(entry.host)
   end
 
-  unless options.blacklist.nil?
-    next if options.blacklist.include?(entry.host)
+  unless options.exclude_hosts.nil?
+    next if options.exclude_hosts.include?(entry.host)
   end
 
   puts entry
