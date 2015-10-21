@@ -23,7 +23,7 @@ require 'optparse'
 require 'ostruct'
 require 'uri'
 
-$version = '1.1.0'
+$version = '1.1.1'
 
 class Optparse
 
@@ -126,7 +126,7 @@ class Entry
   end
 
   def level
-    referer_header.empty? or referer_header['value'] == uri.to_s ? 1 : 2
+    (referer_header.empty? || referer_header['value'] == uri.to_s) ? 1 : 2
   end
 
   def referer_directive
