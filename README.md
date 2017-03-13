@@ -13,6 +13,8 @@ Then convert to a action list file for Avalanche:
 ./har2avalanche.rb my-file.har > avalanche.txt
 ```
 
+You can check [Avalanche documentation](http://kms.spirentcom.com/CSC/Avalanche_WebHelp/index.htm#base/welcome.htm)
+
 ## Options
 
 List the options with the --help flag:
